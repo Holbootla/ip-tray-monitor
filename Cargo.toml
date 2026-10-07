@@ -1,0 +1,47 @@
+[package]
+name = "ip-tray-monitor"
+version = "0.1.0"
+edition = "2021"
+description = "Windows tray app that shows your public IP and turns red when it differs from the expected one"
+license = "MIT"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Everything below is Windows-only; the pure logic (target matching, config)
+# also builds on other platforms so unit tests can run anywhere.
+[target.'cfg(windows)'.dependencies]
+native-windows-gui = { version = "1.0.13", default-features = false, features = [
+    "tray-notification",
+    "message-window",
+    "menu",
+    "notice",
+    "cursor",
+    "embed-resource",
+    "high-dpi",
+] }
+winapi = { version = "0.3", features = [
+    "synchapi",
+    "errhandlingapi",
+    "winerror",
+    "iphlpapi",
+    "sysinfoapi",
+    "minwinbase",
+    "winuser",
+    "handleapi",
+    "shellapi",
+] }
+winreg = "0.52"
+ureq = { version = "2", default-features = false, features = ["native-tls"] }
+native-tls = "0.2"
+
+[build-dependencies]
+embed-resource = "=2.5.2"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
