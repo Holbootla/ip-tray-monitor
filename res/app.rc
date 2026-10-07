@@ -10,8 +10,8 @@
 12 ICON "../assets/gray.ico"
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION     0,1,0,0
-PRODUCTVERSION  0,1,0,0
+FILEVERSION     0,2,0,0
+PRODUCTVERSION  0,2,0,0
 FILEOS          VOS_NT_WINDOWS32
 FILETYPE        VFT_APP
 BEGIN
@@ -21,11 +21,11 @@ BEGIN
     BEGIN
       VALUE "CompanyName",      "Holbootla"
       VALUE "FileDescription",  "IP Tray Monitor"
-      VALUE "FileVersion",      "0.1.0"
+      VALUE "FileVersion",      "0.2.0"
       VALUE "InternalName",     "ip-tray-monitor"
       VALUE "OriginalFilename", "ip-tray-monitor.exe"
       VALUE "ProductName",      "IP Tray Monitor"
-      VALUE "ProductVersion",   "0.1.0"
+      VALUE "ProductVersion",   "0.2.0"
     END
   END
   BLOCK "VarFileInfo"

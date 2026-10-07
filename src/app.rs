@@ -192,7 +192,7 @@ impl App {
             .parent(w)
             .build(&mut app.chk_autostart)?;
         nwg::CheckBox::builder()
-            .text("Show a notification when the IP doesn't match")
+            .text("Show an alert window when the IP doesn't match")
             .position((16, 204))
             .size((368, 22))
             .background_color(Some(bg))
@@ -346,21 +346,36 @@ impl App {
                     st.notified_ip = st.ip;
                     if notify {
                         let msg = format!(
-                            "Current IP {} doesn't match the target ({}).",
+                            "The public IP address doesn't match the target!\n\n\
+                             Current IP:\t{}\n\
+                             Expected:\t{}\n\
+                             Detected at:\t{}\n\n\
+                             Traffic may be leaving outside the VPN.",
                             ip_text.as_deref().unwrap_or("?"),
-                            st.config.target_ip.trim()
+                            st.config.target_ip.trim(),
+                            st.checked_at.as_deref().unwrap_or("?")
                         );
-                        self.balloon(&msg, "IP address mismatch", nwg::TrayNotificationFlags::WARNING_ICON);
+                        // A blocking, always-on-top alert window (shown from its own
+                        // thread so the tray keeps working while it is open).
+                        sys::show_alert(msg);
                     }
                 }
             }
             Status::Match => {
-                if st.notified_ip.take().is_some() && notify {
-                    let msg = format!("IP {} matches the target again.", ip_text.as_deref().unwrap_or("?"));
-                    self.balloon(&msg, "IP address OK", nwg::TrayNotificationFlags::INFO_ICON);
+                if st.notified_ip.take().is_some() {
+                    // The problem is gone: dismiss the alert, leave a quiet toast.
+                    sys::close_alert();
+                    if notify {
+                        let msg = format!("IP {} matches the target again.", ip_text.as_deref().unwrap_or("?"));
+                        self.balloon(&msg, "IP address OK", nwg::TrayNotificationFlags::INFO_ICON);
+                    }
                 }
             }
-            Status::NoTarget => st.notified_ip = None,
+            Status::NoTarget => {
+                if st.notified_ip.take().is_some() {
+                    sys::close_alert();
+                }
+            }
             Status::Unknown => {}
         }
 

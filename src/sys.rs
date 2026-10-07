@@ -143,3 +143,45 @@ pub fn use_dialog_background(hwnd: winapi::shared::windef::HWND) -> [u8; 3] {
         [(c & 0xFF) as u8, ((c >> 8) & 0xFF) as u8, ((c >> 16) & 0xFF) as u8]
     }
 }
+
+// ---------------------------------------------------------------- alert
+
+const ALERT_TITLE: &str = "IP Tray Monitor \u{2014} IP address mismatch";
+
+/// Shows a modal, always-on-top warning box with a sound. Runs on its own
+/// thread so the UI thread (tray icon, menu) is never blocked. A previous
+/// alert that is still open is closed first, so they never pile up.
+pub fn show_alert(text: String) {
+    use winapi::um::winuser::{MessageBoxW, MB_ICONWARNING, MB_OK, MB_SETFOREGROUND, MB_SYSTEMMODAL, MB_TOPMOST};
+    close_alert();
+    std::thread::spawn(move || {
+        let text = wide(&text);
+        let title = wide(ALERT_TITLE);
+        unsafe {
+            MessageBoxW(
+                ptr::null_mut(),
+                text.as_ptr(),
+                title.as_ptr(),
+                MB_OK | MB_ICONWARNING | MB_TOPMOST | MB_SETFOREGROUND | MB_SYSTEMMODAL,
+            );
+        }
+    });
+}
+
+/// Closes any open mismatch alert (e.g. once the IP is back to normal).
+pub fn close_alert() {
+    use winapi::um::winuser::{FindWindowExW, PostMessageW, WM_CLOSE};
+    let class = wide("#32770"); // standard dialog class used by MessageBox
+    let title = wide(ALERT_TITLE);
+    unsafe {
+        let mut after = ptr::null_mut();
+        for _ in 0..8 {
+            let hwnd = FindWindowExW(ptr::null_mut(), after, class.as_ptr(), title.as_ptr());
+            if hwnd.is_null() {
+                break;
+            }
+            PostMessageW(hwnd, WM_CLOSE, 0, 0);
+            after = hwnd;
+        }
+    }
+}

@@ -1,6 +1,6 @@
 [package]
 name = "ip-tray-monitor"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 description = "Windows tray app that shows your public IP and turns red when it differs from the expected one"
 license = "MIT"
